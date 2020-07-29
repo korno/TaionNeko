@@ -29,7 +29,7 @@ import kotlinx.android.synthetic.main.fragment_temperature_entry.*
 import org.threeten.bp.*
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.format.FormatStyle
-import uk.me.mikemike.taionneko.MainActivityViewModel
+import uk.me.mikemike.taionneko.ui.activities.MainActivityViewModel
 import uk.me.mikemike.taionneko.R
 import uk.me.mikemike.taionneko.TemperatureEntry
 
@@ -60,13 +60,13 @@ class AddTemperatureEntry : Fragment() {
 
         buttonToday.setOnClickListener {
             OffsetDateTime.now().let {
-                setCurrentDate(it.year, it.monthValue, it.dayOfMonth)
+                setSavedDate(it.year, it.monthValue, it.dayOfMonth)
             }
         }
 
         buttonNow.setOnClickListener {
             OffsetDateTime.now().let {
-                setCurrentTime(it.hour, it.minute)
+                setSavedTime(it.hour, it.minute)
             }
         }
 
@@ -91,43 +91,38 @@ class AddTemperatureEntry : Fragment() {
             val theTime = getSavedDateOrNow()
             // Android's date picker uses 0 as January while the Time API uses 1, hence the need for the -1 and +1 when dealing
             // with the values returned from and sent to the dialog
-            val dpd = DatePickerDialog(requireContext(), DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
-                this.setCurrentDate(year, monthOfYear+1, dayOfMonth)
-            }, theTime.year, theTime.monthValue-1, theTime.dayOfMonth)
-            dpd.show()
+            DatePickerDialog(requireContext(), DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+                this.setSavedDate(year, monthOfYear+1, dayOfMonth)
+            }, theTime.year, theTime.monthValue-1, theTime.dayOfMonth).show()
         }
 
         editTextTime.setOnClickListener {
             val theTime = getSavedDateOrNow()
-            val timeDialog = TimePickerDialog(requireContext(), TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
-                this.setCurrentTime(hourOfDay, minute)
-            }, theTime.hour, theTime.minute, true)
-            timeDialog.show()
+            TimePickerDialog(requireContext(), TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
+                this.setSavedTime(hourOfDay, minute)
+            }, theTime.hour, theTime.minute, true).show()
         }
 
-
-
     }
-
 
     fun getSavedDateOrNow(): OffsetDateTime{
         return  if(viewModel.selectedDate.value != null) viewModel.selectedDate.value!! else OffsetDateTime.now()!!
 
     }
 
-    fun setCurrentTime(hours: Int, minutes: Int){
+    private fun setSavedTime(hours: Int, minutes: Int){
         viewModel.selectedDate.value?.let {
             viewModel.selectedDate.postValue(OffsetDateTime.of(it.year, it.monthValue, it.dayOfMonth, hours, minutes, 0, 0, it.offset))
         }
     }
 
-    fun setCurrentDate(year: Int, month: Int, day: Int){
+    private fun setSavedDate(year: Int, month: Int, day: Int){
         viewModel.selectedDate.value?.let {
             viewModel.selectedDate.postValue(OffsetDateTime.of(year, month, day, it.hour, it.minute, 0, 0, it.offset ))
         }
     }
 
-    fun addEntry(){
+    private fun addEntry(){
         editTextTemperature.text.toString().toFloatOrNull()?.let {
             viewModel.addNewTemperatureEntry(TemperatureEntry(0, it, getSavedDateOrNow())).observe(viewLifecycleOwner, Observer { handleTemperatureEntry()})
             return
@@ -135,7 +130,7 @@ class AddTemperatureEntry : Fragment() {
         Toast.makeText(requireContext(), "Please Enter a valid temperature", Toast.LENGTH_SHORT).show()
     }
 
-    fun handleTemperatureEntry(){
+    private fun handleTemperatureEntry(){
         Toast.makeText(activity, "Temperature Entry Added", Toast.LENGTH_SHORT).show()
     }
 

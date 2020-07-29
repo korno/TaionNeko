@@ -1,4 +1,4 @@
-package uk.me.mikemike.taionneko
+package uk.me.mikemike.taionneko.ui.activities
 
 import android.app.Application
 import android.content.Context.MODE_PRIVATE
@@ -8,6 +8,9 @@ import kotlinx.coroutines.launch
 import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.format.FormatStyle
+import uk.me.mikemike.taionneko.TaionNekoDatabase
+import uk.me.mikemike.taionneko.TaionNekoRepository
+import uk.me.mikemike.taionneko.TemperatureEntry
 
 class MainActivityViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -22,7 +25,11 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     init {
         val recentSize = application.getSharedPreferences("GlobalPrefs", MODE_PRIVATE).getInt("RecentRecordSize", 7)
         selectedDate = MutableLiveData(OffsetDateTime.now())
-        repos = TaionNekoRepository(TaionNekoDatabase.getInstance(application), recentSize)
+        repos = TaionNekoRepository(
+            TaionNekoDatabase.getInstance(
+                application
+            ), recentSize
+        )
         recentEntries = repos.recentEntries
         averageTemperature = Transformations.map(recentEntries){
             calculateAverageTemperature(it)

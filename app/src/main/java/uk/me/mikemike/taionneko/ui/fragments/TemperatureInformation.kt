@@ -1,28 +1,36 @@
+/**Copyright 2020 Michael Hall
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.**/
 package uk.me.mikemike.taionneko.ui.fragments
 
+import android.graphics.Color
 import android.os.Bundle
-import android.renderscript.Sampler
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
-import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
 import uk.me.mikemike.taionneko.R
 import kotlinx.android.synthetic.main.fragment_temperature_information.*
-import org.threeten.bp.OffsetDateTime
-import uk.me.mikemike.taionneko.MainActivityViewModel
+import uk.me.mikemike.taionneko.ui.activities.MainActivityViewModel
 import uk.me.mikemike.taionneko.TemperatureEntry
 
 class TemperatureCustomEntry(temp: TemperatureEntry, x:Float) : Entry(x, temp.value) {
@@ -33,57 +41,95 @@ class TemperatureInformation : Fragment() {
 
     private lateinit var viewModel: MainActivityViewModel
 
+    companion object {
+        @JvmStatic
+        fun newInstance() =
+            TemperatureInformation()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_temperature_information, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
+
         super.onActivityCreated(savedInstanceState)
+
         viewModel = ViewModelProvider(activity!!).get(MainActivityViewModel::class.java)
 
-        temperatureChart.xAxis.labelRotationAngle = 90f;
-        temperatureChart.xAxis.granularity=1F
-
+        setupChartDesign()
 
         viewModel.averageTemperature.observe(viewLifecycleOwner,
+           // TODO: Format this float value to a couple of significant digits - it looks weird now
             Observer { textAverageTemperature.text = it.toString() })
+
         viewModel.recentEntries.observe(viewLifecycleOwner, Observer {
             updateGraph(it)
         })
         viewModel.recentEntryDates.observe(viewLifecycleOwner, Observer {
-            temperatureChart.xAxis.valueFormatter = IndexAxisValueFormatter(it)
-            temperatureChart.xAxis.setLabelCount(it.size)
-            temperatureChart.invalidate()
+            updateGraphXAxisLabels(it)
         })
 
-        viewModel.deleteAll()
+
     }
 
+    private fun setupChartDesign(){
+        // Yes yes, I know setting UI stuff in the code is awful but I was
+        // unable to set these in the XML layout
+        temperatureChart.apply {
+                xAxis.apply {
+                    labelRotationAngle =90F
+                    granularity=1F
+                    position = XAxis.XAxisPosition.BOTTOM
+                }
+            legend.isEnabled = false
+            description.isEnabled = false
+            legend.isEnabled = false
+            axisRight.isEnabled = false
+        }
+    }
+
+    private fun updateGraphXAxisLabels(vals: List<String>){
+        temperatureChart.xAxis.valueFormatter = IndexAxisValueFormatter(vals)
+        temperatureChart.xAxis.setLabelCount(vals.size)
+        temperatureChart.invalidate()
+    }
+
+    private fun forceChartRefresh(){
+        // Black magic, a random combination will force the chart to redraw itself
+        // call the functions, all the functions!
+        temperatureChart.data.notifyDataChanged()
+        temperatureChart.notifyDataSetChanged()
+        temperatureChart.axisLeft.resetAxisMaximum()
+        temperatureChart.axisLeft.resetAxisMinimum()
+        temperatureChart.invalidate()
+    }
+
+
     private fun updateGraph(data: List<TemperatureEntry>) {
+        // We need to create the data the first time
         if (temperatureChart.data == null) {
-            var chartData = ArrayList<Entry>()
+            val chartData = ArrayList<Entry>()
             data.forEachIndexed { index, entry ->
                 chartData.add(
-                    Entry(
-                        index.toFloat(),
-                        entry.value
+                    TemperatureCustomEntry(
+                        entry,
+                        index.toFloat()
                     )
                 )
             }
-            var dataSet = LineDataSet(chartData, "Temperature").apply {
+            val dataSet = LineDataSet(chartData, "Temperature").apply {
                 axisDependency = YAxis.AxisDependency.LEFT
+                lineWidth = 3F
+                setDrawFilled(true)
+                fillColor = Color.BLUE
             }
-            var lineDataSets = ArrayList<ILineDataSet>()
-            lineDataSets.add(dataSet)
-            var d = LineData(lineDataSets)
-            temperatureChart.data = d
-            temperatureChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+            temperatureChart.data = LineData(ArrayList<ILineDataSet>().apply { add(dataSet) })
         } else {
-            var chartData = temperatureChart.data.getDataSetByIndex(0)
+            val chartData = temperatureChart.data.getDataSetByIndex(0)
             chartData.clear()
             data.forEachIndexed { index, entry ->
                 temperatureChart.data.addEntry(
@@ -93,18 +139,9 @@ class TemperatureInformation : Fragment() {
                     ), 0
                 )
             }
-
-            temperatureChart.data.notifyDataChanged()
-            temperatureChart.notifyDataSetChanged()
-            temperatureChart.axisLeft.resetAxisMaximum()
-            temperatureChart.axisLeft.resetAxisMinimum()
-            temperatureChart.invalidate()
         }
+        forceChartRefresh()
     }
 
-    companion object {
-        @JvmStatic
-        fun newInstance() =
-            TemperatureInformation()
-    }
+
 }
