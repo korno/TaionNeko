@@ -52,24 +52,6 @@ class AddTemperatureEntry : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(activity!!).get(MainActivityViewModel::class.java)
-
-        buttonAddTemperature.setOnClickListener {
-                addEntry()
-        }
-
-
-        buttonToday.setOnClickListener {
-            OffsetDateTime.now().let {
-                setSavedDate(it.year, it.monthValue, it.dayOfMonth)
-            }
-        }
-
-        buttonNow.setOnClickListener {
-            OffsetDateTime.now().let {
-                setSavedTime(it.hour, it.minute)
-            }
-        }
-
         viewModel.selectedDate.observe(viewLifecycleOwner, Observer {
             editTextDate.setText(
                 it.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
@@ -87,6 +69,29 @@ class AddTemperatureEntry : Fragment() {
         editTextDate.inputType = InputType.TYPE_NULL
         editTextTime.inputType = InputType.TYPE_NULL
 
+        bindUIEvents()
+
+    }
+
+    private fun bindUIEvents(){
+
+        buttonAddTemperature.setOnClickListener {
+            addEntry()
+        }
+
+
+        buttonToday.setOnClickListener {
+            OffsetDateTime.now().let {
+                setSavedDate(it.year, it.monthValue, it.dayOfMonth)
+            }
+        }
+
+        buttonNow.setOnClickListener {
+            OffsetDateTime.now().let {
+                setSavedTime(it.hour, it.minute)
+            }
+        }
+
         editTextDate.setOnClickListener {
             val theTime = getSavedDateOrNow()
             // Android's date picker uses 0 as January while the Time API uses 1, hence the need for the -1 and +1 when dealing
@@ -102,10 +107,9 @@ class AddTemperatureEntry : Fragment() {
                 this.setSavedTime(hourOfDay, minute)
             }, theTime.hour, theTime.minute, true).show()
         }
-
     }
 
-    fun getSavedDateOrNow(): OffsetDateTime{
+    private fun getSavedDateOrNow(): OffsetDateTime{
         return  if(viewModel.selectedDate.value != null) viewModel.selectedDate.value!! else OffsetDateTime.now()!!
 
     }

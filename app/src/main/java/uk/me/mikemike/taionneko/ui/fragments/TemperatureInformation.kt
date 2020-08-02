@@ -33,7 +33,11 @@ import kotlinx.android.synthetic.main.fragment_temperature_information.*
 import uk.me.mikemike.taionneko.ui.activities.MainActivityViewModel
 import uk.me.mikemike.taionneko.TemperatureEntry
 
-class TemperatureCustomEntry(temp: TemperatureEntry, x:Float) : Entry(x, temp.value) {
+// The Entry class used by the chart only allows for two float values for data (x and y axis) and we need access to
+// the date a temperature was added,  while we could map the chart's entry based on it's index back to the original data (they are stored in the same order in both lists)
+// it seems a little nicer just to extend the chart data class and include the data in it, then we can forget about the orignal data when
+// we do any formatting in the chart
+class TemperatureCustomChartEntry(temp: TemperatureEntry, x:Float) : Entry(x, temp.value) {
     val tempEntry = temp
 }
 
@@ -57,13 +61,15 @@ class TemperatureInformation : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
 
         super.onActivityCreated(savedInstanceState)
-
-        viewModel = ViewModelProvider(activity!!).get(MainActivityViewModel::class.java)
-
         setupChartDesign()
+        setupViewModelObservers()
 
+    }
+
+    private fun setupViewModelObservers(){
+        viewModel = ViewModelProvider(activity!!).get(MainActivityViewModel::class.java)
         viewModel.averageTemperature.observe(viewLifecycleOwner,
-           // TODO: Format this float value to a couple of significant digits - it looks weird now
+            // TODO: Format this float value to a couple of significant digits - it looks weird now
             Observer { textAverageTemperature.text = it.toString() })
 
         viewModel.recentEntries.observe(viewLifecycleOwner, Observer {
@@ -72,9 +78,8 @@ class TemperatureInformation : Fragment() {
         viewModel.recentEntryDates.observe(viewLifecycleOwner, Observer {
             updateGraphXAxisLabels(it)
         })
-
-
     }
+
 
     private fun setupChartDesign(){
         // Yes yes, I know setting UI stuff in the code is awful but I was
@@ -87,8 +92,8 @@ class TemperatureInformation : Fragment() {
                 }
             legend.isEnabled = false
             description.isEnabled = false
-            legend.isEnabled = false
             axisRight.isEnabled = false
+            setTouchEnabled(true)
         }
     }
 
@@ -115,7 +120,7 @@ class TemperatureInformation : Fragment() {
             val chartData = ArrayList<Entry>()
             data.forEachIndexed { index, entry ->
                 chartData.add(
-                    TemperatureCustomEntry(
+                    TemperatureCustomChartEntry(
                         entry,
                         index.toFloat()
                     )
@@ -133,7 +138,7 @@ class TemperatureInformation : Fragment() {
             chartData.clear()
             data.forEachIndexed { index, entry ->
                 temperatureChart.data.addEntry(
-                    TemperatureCustomEntry(
+                    TemperatureCustomChartEntry(
                         entry,
                         index.toFloat()
                     ), 0
