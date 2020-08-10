@@ -22,6 +22,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -32,6 +33,7 @@ import org.threeten.bp.format.FormatStyle
 import uk.me.mikemike.taionneko.ui.activities.MainActivityViewModel
 import uk.me.mikemike.taionneko.R
 import uk.me.mikemike.taionneko.TemperatureEntry
+import uk.me.mikemike.taionneko.utils.MinMaxTextWatcher
 
 
 class AddTemperatureEntry : Fragment() {
@@ -107,6 +109,19 @@ class AddTemperatureEntry : Fragment() {
                 this.setSavedTime(hourOfDay, minute)
             }, theTime.hour, theTime.minute, true).show()
         }
+
+        // Limit the max an minimum values for the text input
+        //editTextTemperature.addTextChangedListener (MinMaxTextWatcher(30F, 45F))
+        editTextTemperature.onFocusChangeListener =
+            MinMaxTextWatcher(30F, 45F,this::onTemperatureValueToLow, this::onTemperatureValueToHigh)
+    }
+
+    private fun onTemperatureValueToLow(value: Float){
+        Toast.makeText(requireContext(), "The temperature value was too low. Set to minimum value instead.", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun onTemperatureValueToHigh(value: Float){
+        Toast.makeText(requireContext(), "The temperature value was too high. Set to maximum value instead.", Toast.LENGTH_SHORT).show()
     }
 
     private fun getSavedDateOrNow(): OffsetDateTime{

@@ -13,12 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.**/
 package uk.me.mikemike.taionneko.ui.fragments
 
-import android.graphics.Color
+
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.github.mikephil.charting.components.XAxis
@@ -130,7 +131,7 @@ class TemperatureInformation : Fragment() {
                 axisDependency = YAxis.AxisDependency.LEFT
                 lineWidth = 3F
                 setDrawFilled(true)
-                fillColor = Color.BLUE
+                fillDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.chart_fill)
             }
             temperatureChart.data = LineData(ArrayList<ILineDataSet>().apply { add(dataSet) })
         } else {
