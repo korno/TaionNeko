@@ -29,28 +29,43 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
 
     private val repos: TaionNekoRepository
 
+
     val recentEntries: LiveData<List<TemperatureEntry>>
     val recentEntryDates: LiveData<List<String>>
+
+
     var averageTemperature: LiveData<Float>
     var selectedDate: MutableLiveData<OffsetDateTime>
 
+    var fromSearchDate: MutableLiveData<OffsetDateTime>
+    var searchResults: LiveData<List<TemperatureEntry>>
+    val searchResultDatesStrings: LiveData<List<String>>
+
+    val dashboardRecordLimit: Int = application.getSharedPreferences("GlobalPrefs", MODE_PRIVATE).getInt("DashboardRecordSize", 14)
 
     init {
-        val recentSize = application.getSharedPreferences("GlobalPrefs", MODE_PRIVATE).getInt("RecentRecordSize", 7)
         selectedDate = MutableLiveData(OffsetDateTime.now())
         repos = TaionNekoRepository(
             TaionNekoDatabase.getInstance(
                 application
-            ), recentSize
+            ), dashboardRecordLimit
         )
         recentEntries = repos.recentEntries
         averageTemperature = Transformations.map(recentEntries){
             calculateAverageTemperature(it)
         }
-        recentEntryDates = Transformations.map(recentEntries){generateRecentEntryDates(it)}
+
+      recentEntryDates = Transformations.map(recentEntries){generateDateStrings(it)}
+
+
+        fromSearchDate = MutableLiveData(OffsetDateTime.now().minusWeeks(1))
+        searchResults = Transformations.switchMap(fromSearchDate){ currentDate -> repos.getEntriesSince(currentDate, dashboardRecordLimit)}
+        searchResultDatesStrings = Transformations.map(searchResults){generateDateStrings(it)}
     }
 
-    private fun generateRecentEntryDates(vals: List<TemperatureEntry>): List<String>{
+
+
+    private fun generateDateStrings(vals: List<TemperatureEntry>): List<String>{
         val v=ArrayList<String>()
         vals.forEach { v.add(it.insertDate.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT))) }
         return v

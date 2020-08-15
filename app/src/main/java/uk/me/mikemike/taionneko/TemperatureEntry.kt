@@ -45,4 +45,8 @@ interface TemperatureEntryDao {
     @Query("SELECT * FROM $TABLE_NAME ORDER BY datetime(${TemperatureEntry.INSERT_DATE_FIELD}) ASC LIMIT :count ")
     fun getMostRecent(count: Int): LiveData<List<TemperatureEntry>>
 
+    @Query("SELECT * FROM (SELECT * FROM $TABLE_NAME WHERE  datetime(${TemperatureEntry.INSERT_DATE_FIELD}) > datetime(:since) ORDER BY " +
+            " datetime(${TemperatureEntry.INSERT_DATE_FIELD}) DESC ) X  ORDER BY datetime(${TemperatureEntry.INSERT_DATE_FIELD}) ASC LIMIT :limit")
+    fun getEntriesSince(since: OffsetDateTime, limit: Int): LiveData<List<TemperatureEntry>>
+
 }

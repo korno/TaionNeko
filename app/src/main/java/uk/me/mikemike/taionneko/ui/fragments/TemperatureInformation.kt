@@ -71,14 +71,19 @@ class TemperatureInformation : Fragment() {
         viewModel = ViewModelProvider(activity!!).get(MainActivityViewModel::class.java)
         viewModel.averageTemperature.observe(viewLifecycleOwner,
             // TODO: Format this float value to a couple of significant digits - it looks weird now
-            Observer { textAverageTemperature.text = it.toString() })
+            Observer { textAverageTemperature.text = getString(R.string.fragment_temperature_information_average_temp, it) })
 
-        viewModel.recentEntries.observe(viewLifecycleOwner, Observer {
+        /* CHANGED - Instead of just showing the most recent X entries, we are going to show the entries for the previous
+            seven days - this is the old code for the most recent entries
+            if you want to go back to the old system the viewModel still contains the live data for those
+         */
+        viewModel.searchResults.observe(viewLifecycleOwner, Observer {
             updateGraph(it)
         })
-        viewModel.recentEntryDates.observe(viewLifecycleOwner, Observer {
+        viewModel.searchResultDatesStrings.observe(viewLifecycleOwner, Observer {
             updateGraphXAxisLabels(it)
         })
+
     }
 
 
@@ -94,6 +99,7 @@ class TemperatureInformation : Fragment() {
             legend.isEnabled = false
             description.isEnabled = false
             axisRight.isEnabled = false
+            setNoDataText("No Temperature Entries Saved")
             setTouchEnabled(true)
         }
     }
@@ -112,10 +118,19 @@ class TemperatureInformation : Fragment() {
         temperatureChart.axisLeft.resetAxisMaximum()
         temperatureChart.axisLeft.resetAxisMinimum()
         temperatureChart.invalidate()
+        temperatureChart.fitScreen()
     }
 
 
     private fun updateGraph(data: List<TemperatureEntry>) {
+
+        // FIX for displaying the chart empty data message; if the data is empty set the chart data to null
+        // this forces the chart to show the empty data text
+        if(data.isEmpty()){
+            temperatureChart.data = null
+            return
+        }
+
         // We need to create the data the first time
         if (temperatureChart.data == null) {
             val chartData = ArrayList<Entry>()

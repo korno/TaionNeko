@@ -50,9 +50,9 @@ abstract class TaionNekoDatabase : RoomDatabase() {
 }
 
 
-class TaionNekoRepository(private val database: TaionNekoDatabase, recentCount: Int) {
+class TaionNekoRepository(private val database: TaionNekoDatabase, limit: Int) {
 
-    val recentEntries: LiveData<List<TemperatureEntry>> = database.temperatureEntryDao().getMostRecent(recentCount)
+    val recentEntries: LiveData<List<TemperatureEntry>> = database.temperatureEntryDao().getMostRecent(limit)
 
     suspend fun add(entry: TemperatureEntry): Long{
         return database.temperatureEntryDao().add(entry)
@@ -60,6 +60,10 @@ class TaionNekoRepository(private val database: TaionNekoDatabase, recentCount: 
 
     suspend fun deleteAll(){
         database.clearAllTables()
+    }
+
+    fun getEntriesSince(since: OffsetDateTime, limit: Int): LiveData<List<TemperatureEntry>> {
+        return database.temperatureEntryDao().getEntriesSince(since, limit)
     }
 }
 

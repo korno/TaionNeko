@@ -2,4 +2,12 @@
     <string name="app_name">TaionNeko</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="activity_main_title">Dashboard</string>
+    <string name="fragment_temperature_information_average_temp">Average: %1$.3f</string>
+
+    <string name="button_add_temperature_entry">Add</string>
+    <string name="button_set_date_to_today">Today</string>
+    <string name="button_set_time_to_now">Now</string>
+
 </resources>
