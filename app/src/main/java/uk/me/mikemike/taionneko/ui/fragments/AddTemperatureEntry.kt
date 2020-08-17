@@ -26,7 +26,9 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_temperature_entry.*
+import kotlinx.android.synthetic.main.fragment_temperature_entry.view.*
 import org.threeten.bp.*
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.format.FormatStyle
@@ -55,10 +57,10 @@ class AddTemperatureEntry : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(activity!!).get(MainActivityViewModel::class.java)
         viewModel.selectedDate.observe(viewLifecycleOwner, Observer {
-            editTextDate.setText(
+            editTextDate.editText!!.setText(
                 it.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
             )
-            editTextTime.setText(
+            editTextTime.editText!!.setText(
                 it.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
             )
         })
@@ -68,8 +70,8 @@ class AddTemperatureEntry : Fragment() {
         // instead of allowing typing we will hijack the click event and bring up
         // a dialog box to allow date and time selection. The date and time look better
         // in a text box than a simple label (they actually look editable)
-        editTextDate.inputType = InputType.TYPE_NULL
-        editTextTime.inputType = InputType.TYPE_NULL
+        editTextDate.editText!!.inputType = InputType.TYPE_NULL
+        editTextTime.editText!!.inputType = InputType.TYPE_NULL
 
         bindUIEvents()
 
@@ -94,7 +96,8 @@ class AddTemperatureEntry : Fragment() {
             }
         }
 
-        editTextDate.setOnClickListener {
+
+        editTextDate.editText!!.setOnClickListener {
             val theTime = getSavedDateOrNow()
             // Android's date picker uses 0 as January while the Time API uses 1, hence the need for the -1 and +1 when dealing
             // with the values returned from and sent to the dialog
@@ -103,7 +106,9 @@ class AddTemperatureEntry : Fragment() {
             }, theTime.year, theTime.monthValue-1, theTime.dayOfMonth).show()
         }
 
-        editTextTime.setOnClickListener {
+        editTextDate.editText!!.setOnKeyListener (null )
+
+        editTextTime.editText!!.setOnClickListener {
             val theTime = getSavedDateOrNow()
             TimePickerDialog(requireContext(), TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
                 this.setSavedTime(hourOfDay, minute)
@@ -142,7 +147,7 @@ class AddTemperatureEntry : Fragment() {
     }
 
     private fun addEntry(){
-        editTextTemperature.text.toString().toFloatOrNull()?.let {
+        editTextTemperature.editText!!.text.toString().toFloatOrNull()?.let {
             viewModel.addNewTemperatureEntry(TemperatureEntry(0, it, getSavedDateOrNow())).observe(viewLifecycleOwner, Observer { handleTemperatureEntry()})
             return
         }
@@ -150,7 +155,7 @@ class AddTemperatureEntry : Fragment() {
     }
 
     private fun handleTemperatureEntry(){
-        Toast.makeText(activity, "Temperature Entry Added", Toast.LENGTH_SHORT).show()
+        Snackbar.make(buttonAddTemperature, "Temeperature Entry Added", Snackbar.LENGTH_SHORT).show()
     }
 
 

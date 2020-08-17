@@ -10,4 +10,10 @@
     <string name="button_set_date_to_today">Today</string>
     <string name="button_set_time_to_now">Now</string>
 
+    <string name="textview_add_temperature_entry_title">New Entry</string>
+    <string name="textinput_temperature_hint">Temperature °C</string>
+
+
+    <string name="graph_no_data_for_last_seven_days">No records for the previous seven days</string>
+
 </resources>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="line_graph_line_width" format="float" type="dimen">3.0</item>
+</resources>

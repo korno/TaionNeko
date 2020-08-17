@@ -13,13 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.**/
 package uk.me.mikemike.taionneko.ui.fragments
 
-
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.github.mikephil.charting.components.XAxis
@@ -99,7 +99,7 @@ class TemperatureInformation : Fragment() {
             legend.isEnabled = false
             description.isEnabled = false
             axisRight.isEnabled = false
-            setNoDataText("No Temperature Entries Saved")
+            setNoDataText(resources.getString(R.string.graph_no_data_for_last_seven_days))
             setTouchEnabled(true)
         }
     }
@@ -144,13 +144,14 @@ class TemperatureInformation : Fragment() {
             }
             val dataSet = LineDataSet(chartData, "Temperature").apply {
                 axisDependency = YAxis.AxisDependency.LEFT
-                lineWidth = 3F
+                lineWidth = ResourcesCompat.getFloat(requireContext().resources,R.dimen.line_graph_line_width)
                 setDrawFilled(true)
                 fillDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.chart_fill)
+                setColors(calculateLineColors(data))
             }
             temperatureChart.data = LineData(ArrayList<ILineDataSet>().apply { add(dataSet) })
         } else {
-            val chartData = temperatureChart.data.getDataSetByIndex(0)
+            val chartData = temperatureChart.data.getDataSetByIndex(0) as LineDataSet
             chartData.clear()
             data.forEachIndexed { index, entry ->
                 temperatureChart.data.addEntry(
@@ -160,9 +161,20 @@ class TemperatureInformation : Fragment() {
                     ), 0
                 )
             }
+            chartData.setColors(calculateLineColors(data))
+
         }
         forceChartRefresh()
     }
 
+    fun calculateLineColors(ents: List<TemperatureEntry>): List<Int>{
+        val v = ArrayList<Int>()
+        val c = ContextCompat.getColor(requireContext(), R.color.color_s)
+        ents.forEach {
+            v.add(c)
+        }
+
+        return v
+    }
 
 }
