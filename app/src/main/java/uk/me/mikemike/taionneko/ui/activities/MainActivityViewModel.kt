@@ -34,7 +34,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     val recentEntryDates: LiveData<List<String>>
 
 
-    var averageTemperature: LiveData<Float>
+    var searchResultsAverageTemp: LiveData<Float>
     var selectedDate: MutableLiveData<OffsetDateTime>
 
     var fromSearchDate: MutableLiveData<OffsetDateTime>
@@ -51,16 +51,15 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
             ), dashboardRecordLimit
         )
         recentEntries = repos.recentEntries
-        averageTemperature = Transformations.map(recentEntries){
-            calculateAverageTemperature(it)
-        }
+
 
       recentEntryDates = Transformations.map(recentEntries){generateDateStrings(it)}
-
-
         fromSearchDate = MutableLiveData(OffsetDateTime.now().minusWeeks(1))
         searchResults = Transformations.switchMap(fromSearchDate){ currentDate -> repos.getEntriesSince(currentDate, dashboardRecordLimit)}
         searchResultDatesStrings = Transformations.map(searchResults){generateDateStrings(it)}
+        searchResultsAverageTemp = Transformations.map(searchResults){
+            calculateAverageTemperature(it)
+        }
     }
 
 

@@ -34,6 +34,7 @@ import kotlinx.android.synthetic.main.fragment_temperature_information.*
 import uk.me.mikemike.taionneko.ui.activities.MainActivityViewModel
 import uk.me.mikemike.taionneko.TemperatureEntry
 
+
 // The Entry class used by the chart only allows for two float values for data (x and y axis) and we need access to
 // the date a temperature was added,  while we could map the chart's entry based on it's index back to the original data (they are stored in the same order in both lists)
 // it seems a little nicer just to extend the chart data class and include the data in it, then we can forget about the orignal data when
@@ -67,35 +68,32 @@ class TemperatureInformation : Fragment() {
 
     }
 
-    private fun setupViewModelObservers(){
+    private fun setupViewModelObservers() {
         viewModel = ViewModelProvider(activity!!).get(MainActivityViewModel::class.java)
-        viewModel.averageTemperature.observe(viewLifecycleOwner,
-            // TODO: Format this float value to a couple of significant digits - it looks weird now
-            Observer { textAverageTemperature.text = getString(R.string.fragment_temperature_information_average_temp, it) })
+        viewModel.searchResultsAverageTemp.observe(viewLifecycleOwner,
+            Observer {
+                textAverageTemperature.text =
+                    getString(R.string.fragment_temperature_information_average_temp, it)
+            })
 
-        /* CHANGED - Instead of just showing the most recent X entries, we are going to show the entries for the previous
-            seven days - this is the old code for the most recent entries
-            if you want to go back to the old system the viewModel still contains the live data for those
-         */
         viewModel.searchResults.observe(viewLifecycleOwner, Observer {
             updateGraph(it)
         })
         viewModel.searchResultDatesStrings.observe(viewLifecycleOwner, Observer {
             updateGraphXAxisLabels(it)
         })
-
     }
 
 
-    private fun setupChartDesign(){
+    private fun setupChartDesign() {
         // Yes yes, I know setting UI stuff in the code is awful but I was
         // unable to set these in the XML layout
         temperatureChart.apply {
-                xAxis.apply {
-                    labelRotationAngle =90F
-                    granularity=1F
-                    position = XAxis.XAxisPosition.BOTTOM
-                }
+            xAxis.apply {
+                labelRotationAngle = 90F
+                granularity = 1F
+                position = XAxis.XAxisPosition.BOTTOM
+            }
             legend.isEnabled = false
             description.isEnabled = false
             axisRight.isEnabled = false
@@ -104,13 +102,13 @@ class TemperatureInformation : Fragment() {
         }
     }
 
-    private fun updateGraphXAxisLabels(vals: List<String>){
+    private fun updateGraphXAxisLabels(vals: List<String>) {
         temperatureChart.xAxis.valueFormatter = IndexAxisValueFormatter(vals)
         temperatureChart.xAxis.setLabelCount(vals.size)
         temperatureChart.invalidate()
     }
 
-    private fun forceChartRefresh(){
+    private fun forceChartRefresh() {
         // Black magic, a random combination will force the chart to redraw itself
         // call the functions, all the functions!
         temperatureChart.data.notifyDataChanged()
@@ -126,12 +124,13 @@ class TemperatureInformation : Fragment() {
 
         // FIX for displaying the chart empty data message; if the data is empty set the chart data to null
         // this forces the chart to show the empty data text
-        if(data.isEmpty()){
+        if (data.isEmpty()) {
             temperatureChart.data = null
             return
         }
 
-        // We need to create the data the first time
+        // We need to create the data the first time - subsquent times we can just
+        // reuse the data object and fill the actual data (leaving the styling alone)
         if (temperatureChart.data == null) {
             val chartData = ArrayList<Entry>()
             data.forEachIndexed { index, entry ->
@@ -144,10 +143,12 @@ class TemperatureInformation : Fragment() {
             }
             val dataSet = LineDataSet(chartData, "Temperature").apply {
                 axisDependency = YAxis.AxisDependency.LEFT
-                lineWidth = ResourcesCompat.getFloat(requireContext().resources,R.dimen.line_graph_line_width)
+                lineWidth = ResourcesCompat.getFloat(
+                    requireContext().resources,
+                    R.dimen.line_graph_line_width
+                )
                 setDrawFilled(true)
                 fillDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.chart_fill)
-                setColors(calculateLineColors(data))
             }
             temperatureChart.data = LineData(ArrayList<ILineDataSet>().apply { add(dataSet) })
         } else {
@@ -161,20 +162,31 @@ class TemperatureInformation : Fragment() {
                     ), 0
                 )
             }
-            chartData.setColors(calculateLineColors(data))
-
         }
+        (temperatureChart.data.getDataSetByIndex(0) as LineDataSet).setColors(calculateLineColors(data))
+        (temperatureChart.data.getDataSetByIndex(0) as LineDataSet).setCircleColors(calculateCircleColors(data))
         forceChartRefresh()
     }
 
-    fun calculateLineColors(ents: List<TemperatureEntry>): List<Int>{
-        val v = ArrayList<Int>()
+    private fun calculateLineColors(ents: List<TemperatureEntry>): List<Int> {
         val c = ContextCompat.getColor(requireContext(), R.color.color_s)
-        ents.forEach {
-            v.add(c)
+        return ArrayList<Int>().apply {
+            ents.forEach {
+                add(c)
+            }
         }
-
-        return v
     }
 
+    private fun calculateCircleColors(ents: List<TemperatureEntry>): List<Int>{
+
+
+        val hotColor = ContextCompat.getColor(requireContext(), R.color.hot_temperature_graph_color)
+        val normalColor = ContextCompat.getColor(requireContext(), R.color.hot_temperature_graph_color)
+        val coldColor = ContextCompat.getColor(requireContext(), R.color.hot_temperature_graph_color)
+        return ArrayList<Int>().apply{
+            ents.forEach {
+                add(hotColor)
+            }
+        }
+    }
 }

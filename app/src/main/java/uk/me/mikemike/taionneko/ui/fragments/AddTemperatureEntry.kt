@@ -22,7 +22,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.widget.addTextChangedListener
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -35,6 +35,7 @@ import org.threeten.bp.format.FormatStyle
 import uk.me.mikemike.taionneko.ui.activities.MainActivityViewModel
 import uk.me.mikemike.taionneko.R
 import uk.me.mikemike.taionneko.TemperatureEntry
+import uk.me.mikemike.taionneko.utils.hideSoftKeyboard
 import uk.me.mikemike.taionneko.utils.MinMaxTextWatcher
 
 
@@ -106,8 +107,6 @@ class AddTemperatureEntry : Fragment() {
             }, theTime.year, theTime.monthValue-1, theTime.dayOfMonth).show()
         }
 
-        editTextDate.editText!!.setOnKeyListener (null )
-
         editTextTime.editText!!.setOnClickListener {
             val theTime = getSavedDateOrNow()
             TimePickerDialog(requireContext(), TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
@@ -115,19 +114,22 @@ class AddTemperatureEntry : Fragment() {
             }, theTime.hour, theTime.minute, true).show()
         }
 
-        // Limit the max an minimum values for the text input
-        //editTextTemperature.addTextChangedListener (MinMaxTextWatcher(30F, 45F))
+        // Limit the max an minimum values for the temperature input
+       // TODO : Does this actually work well? Disabled for now as the app may be used for non human temperatures. Check requirements.
+        /*
         editTextTemperature.onFocusChangeListener =
             MinMaxTextWatcher(30F, 45F,this::onTemperatureValueToLow, this::onTemperatureValueToHigh)
+         */
     }
 
+    /* see above todo
     private fun onTemperatureValueToLow(value: Float){
         Toast.makeText(requireContext(), "The temperature value was too low. Set to minimum value instead.", Toast.LENGTH_SHORT).show()
     }
 
     private fun onTemperatureValueToHigh(value: Float){
         Toast.makeText(requireContext(), "The temperature value was too high. Set to maximum value instead.", Toast.LENGTH_SHORT).show()
-    }
+    }*/
 
     private fun getSavedDateOrNow(): OffsetDateTime{
         return  if(viewModel.selectedDate.value != null) viewModel.selectedDate.value!! else OffsetDateTime.now()!!
@@ -147,15 +149,17 @@ class AddTemperatureEntry : Fragment() {
     }
 
     private fun addEntry(){
+        // Ugh, extension methods really don't like inheritence
+        (activity as AppCompatActivity).hideSoftKeyboard(editTextTemperature)
         editTextTemperature.editText!!.text.toString().toFloatOrNull()?.let {
             viewModel.addNewTemperatureEntry(TemperatureEntry(0, it, getSavedDateOrNow())).observe(viewLifecycleOwner, Observer { handleTemperatureEntry()})
             return
         }
-        Toast.makeText(requireContext(), "Please Enter a valid temperature", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), R.string.invalid_temperature_value, Toast.LENGTH_SHORT).show()
     }
 
     private fun handleTemperatureEntry(){
-        Snackbar.make(buttonAddTemperature, "Temeperature Entry Added", Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(buttonAddTemperature, R.string.temperature_entry_added, Snackbar.LENGTH_SHORT).show()
     }
 
 
