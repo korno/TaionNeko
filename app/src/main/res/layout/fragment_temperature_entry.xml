@@ -12,7 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         app:endIconContentDescription="C"
         app:errorEnabled="true"
@@ -86,7 +86,6 @@
 
     <Button
         android:id="@+id/buttonAddTemperature"
-        style="@style/Widget.MaterialComponents.Button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -99,7 +98,10 @@
         app:layout_constraintHorizontal_bias="0.49"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextTime"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.0"
+        app:icon="@drawable/ic_baseline_add_circle_outline_24_white"
+        style="@style/Widget.MaterialComponents.Button.Icon"
+        app:iconGravity="textStart"/>
 
     <Button
         android:id="@+id/buttonToday"
@@ -121,17 +123,19 @@
         android:text="@string/button_set_time_to_now"
         android:textAlignment="center"
         app:layout_constraintBaseline_toBaselineOf="@+id/editTextTime"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 
     <TextView
         android:id="@+id/textView2"
+        style="TextAppearance.MaterialComponents.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
         android:text="@string/textview_add_temperature_entry_title"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        style="TextAppearance.MaterialComponents.Body2"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

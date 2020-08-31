@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/dashboard"
+        android:icon="@drawable/ic_baseline_add_circle_outline_24_white"
+        android:title="Dashboard" />
+    <item
+        android:id="@+id/entries"
+        android:title="Entries" />
+    <item
+        android:id="@+id/graphs"
+        android:title="Graphs" />
+</menu>

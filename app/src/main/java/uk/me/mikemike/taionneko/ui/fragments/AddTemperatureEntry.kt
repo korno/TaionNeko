@@ -26,9 +26,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_temperature_entry.*
-import kotlinx.android.synthetic.main.fragment_temperature_entry.view.*
 import org.threeten.bp.*
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.format.FormatStyle
@@ -36,7 +36,7 @@ import uk.me.mikemike.taionneko.ui.activities.MainActivityViewModel
 import uk.me.mikemike.taionneko.R
 import uk.me.mikemike.taionneko.TemperatureEntry
 import uk.me.mikemike.taionneko.utils.hideSoftKeyboard
-import uk.me.mikemike.taionneko.utils.MinMaxTextWatcher
+
 
 
 class AddTemperatureEntry : Fragment() {
@@ -152,14 +152,33 @@ class AddTemperatureEntry : Fragment() {
         // Ugh, extension methods really don't like inheritence
         (activity as AppCompatActivity).hideSoftKeyboard(editTextTemperature)
         editTextTemperature.editText!!.text.toString().toFloatOrNull()?.let {
+            editTextTemperature.error = null
             viewModel.addNewTemperatureEntry(TemperatureEntry(0, it, getSavedDateOrNow())).observe(viewLifecycleOwner, Observer { handleTemperatureEntry()})
+            editTextTemperature.editText!!.setText("");
             return
         }
+        editTextTemperature.setError(resources.getString(R.string.invalid_temperature_value))
         Toast.makeText(requireContext(), R.string.invalid_temperature_value, Toast.LENGTH_SHORT).show()
     }
 
     private fun handleTemperatureEntry(){
-        Snackbar.make(buttonAddTemperature, R.string.temperature_entry_added, Snackbar.LENGTH_SHORT).show()
+
+        val s = Snackbar.make(
+            buttonAddTemperature,
+            R.string.temperature_entry_added,
+            Snackbar.LENGTH_SHORT
+        )
+
+        // FIX: Force the snackbar to anchor above the navigation bar if one is present in the
+        // parent activity AS LONG AS it has the id bottomNavigation
+        // this is really hacky but will fix the problem of the snackbar covering the navigation
+        val bottomNavigation = activity!!.findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        if(bottomNavigation != null) {
+           s.setAnchorView(bottomNavigation).show()
+        }
+        else{
+            s.show()
+        }
     }
 
 

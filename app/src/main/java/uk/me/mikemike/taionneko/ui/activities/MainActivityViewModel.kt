@@ -62,8 +62,6 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-
-
     private fun generateDateStrings(vals: List<TemperatureEntry>): List<String>{
         val v=ArrayList<String>()
         vals.forEach { v.add(it.insertDate.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT))) }
